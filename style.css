@@ -25,7 +25,9 @@ header {
   cursor: pointer;
 }
 .top-nav .nav-button.active {
-  background: #17a083;
+  background: #5271ff;
+  border: 2px outset #ffffff;
+  border-radius: 15px;
 }
 
 main {
