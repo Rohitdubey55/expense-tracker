@@ -1,33 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json">
   <meta charset="UTF-8">
   <title>Expense Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-  <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js')
-    .catch(e => console.warn('SW registration failed:', e));
-}
-</script>
-
 <body>
+
   <header>
     <h1>Expense Tracker</h1>
   </header>
 
   <main>
-    <!-- Add / Edit Expense -->
+    <!-- ADD / RECENT EXPENSES -->
     <section id="section-add" class="page">
       <form id="expenseForm">
-        <label for="date">Date</label>
+        <label>Date</label>
         <input type="date" id="date" required>
 
-        <label for="categorySelect">Category</label>
+        <label>Category</label>
         <div class="input-group">
           <select id="categorySelect" required>
             <option value="" disabled selected>Select category</option>
@@ -35,43 +29,53 @@ if ('serviceWorker' in navigator) {
           <button id="btn-create-category" type="button" class="secondary small">+ New</button>
         </div>
 
-        <label for="description">Spent On</label>
+        <label>Spent On</label>
         <input type="text" id="description" placeholder="Groceries, Fuel…" required>
 
-        <label for="amount">Amount (₹)</label>
+        <label>Amount (₹)</label>
         <input type="number" id="amount" placeholder="0.00" required>
 
         <button id="btn-submit-expense" type="submit" class="primary">Add Expense</button>
         <button id="btn-cancel-edit" type="button" class="secondary small hidden">Cancel Edit</button>
       </form>
+
+      <div id="recentSection">
+        <h3>Last 30 Expenses</h3>
+        <div class="table-container">
+          <table id="recentTable">
+            <thead>
+              <tr><th>Date</th><th>Cat.</th><th>Desc.</th><th>Amt</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button id="btn-view-all" class="secondary">View All Expenses</button>
+      </div>
     </section>
 
-    <!-- View Expenses -->
+    <!-- VIEW ALL EXPENSES -->
     <section id="section-preview" class="page hidden">
-      <h2>Expenses in <span id="currentMonth"></span></h2>
+      <h2>Expenses for <span id="currentMonth"></span></h2>
       <div class="table-container">
         <table id="expensesTable">
           <thead>
-            <tr><th>Date</th><th>Cat.</th><th>Desc.</th><th>Amt (₹)</th><th>Action</th></tr>
+            <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount (₹)</th><th>Action</th></tr>
           </thead>
           <tbody></tbody>
           <tfoot>
-            <tr>
-              <td colspan="4">Total</td>
-              <td id="totalAmount">₹0.00</td>
-            </tr>
+            <tr><td colspan="4">Total</td><td id="totalAmount">₹0.00</td></tr>
           </tfoot>
         </table>
       </div>
     </section>
 
-    <!-- Timeline -->
+    <!-- TIMELINE -->
     <section id="section-timeline" class="page hidden">
       <h2>Daily Spend in <span id="currentMonthTimeline"></span></h2>
       <canvas id="timelineChart"></canvas>
     </section>
 
-    <!-- Categories -->
+    <!-- CATEGORIES -->
     <section id="section-categories" class="page hidden">
       <h2>Categories</h2>
       <form id="categoryForm" class="inline-form">
@@ -83,28 +87,45 @@ if ('serviceWorker' in navigator) {
       <canvas id="categoryChart"></canvas>
     </section>
 
-    <!-- Budget -->
+    <!-- BUDGET -->
     <section id="section-budget" class="page hidden">
       <h2>Budget Overview</h2>
       <div class="budget-overview">
-        <label>Monthly: ₹<span id="monthlyBudgetVal">0</span></label>
+        <label>Monthly: ₹<span id="monthlyBudgetDisplay">0</span></label>
         <div class="progress-bar"><div id="monthlyBar" class="progress-fill"></div></div>
-        <span id="monthlyPercent">0%</span>
+        <span id="monthlyRemaining"></span>
 
-        <label>Weekly: ₹<span id="weeklyBudgetVal">0</span></label>
+        <label>Weekly: ₹<span id="weeklyBudgetDisplay">0</span></label>
         <div class="progress-bar"><div id="weeklyBar" class="progress-fill"></div></div>
-        <span id="weeklyPercent">0%</span>
+        <span id="weeklyRemaining"></span>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="section-settings" class="page hidden">
+      <h2>Settings</h2>
+      <div class="settings-item">
+        <h3>Edit Budgets</h3>
+        <label>Monthly ₹<input type="number" id="monthlyBudgetInput"></label>
+        <label>Weekly ₹<input type="number" id="weeklyBudgetInput"></label>
+        <button id="btn-save-budgets" class="primary">Save Budgets</button>
+      </div>
+      <div class="settings-item">
+        <h3>Category Colors</h3>
+        <div id="categoryColorList"></div>
+        <button id="btn-save-colors" class="primary">Save Colors</button>
       </div>
     </section>
   </main>
 
-  <!-- Fixed Bottom Navigation -->
+  <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <button id="nav-add" class="active">Add</button>
-    <button id="nav-preview">View</button>
-    <button id="nav-timeline">Timeline</button>
-    <button id="nav-categories">Categories</button>
-    <button id="nav-budget">Budget</button>
+    <button id="nav-preview">All</button>
+    <button id="nav-timeline">Time</button>
+    <button id="nav-categories">Cat</button>
+    <button id="nav-budget">Bud</button>
+    <button id="nav-settings">Set</button>
   </nav>
 
   <script src="script.js"></script>
