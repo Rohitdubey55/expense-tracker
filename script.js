@@ -1,238 +1,205 @@
-let categoryChartInstance = null;
-let timelineChartInstance = null;
-
-// Edit state
-let isEditing = false, editKey = null, editIndex = null;
+let categoryChartInstance, timelineChartInstance;
+let isEditing = false, editIndex = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // ─── Element Refs ─────────────────────────────
-  const nav = {
-    add:        document.getElementById('nav-add'),
-    preview:    document.getElementById('nav-preview'),
-    timeline:   document.getElementById('nav-timeline'),
-    categories: document.getElementById('nav-categories'),
-    budget:     document.getElementById('nav-budget'),
-    settings:   document.getElementById('nav-settings'),
-  };
-  const sections = {
-    add:        document.getElementById('section-add'),
-    preview:    document.getElementById('section-preview'),
-    timeline:   document.getElementById('section-timeline'),
-    categories: document.getElementById('section-categories'),
-    budget:     document.getElementById('section-budget'),
-    settings:   document.getElementById('section-settings'),
-  };
+  // NAV BUTTONS & SECTIONS
+  const navAdd        = document.getElementById('navAdd');
+  const navTimeline   = document.getElementById('navTimeline');
+  const navCategories = document.getElementById('navCategories');
+  const navBudget     = document.getElementById('navBudget');
+  const navSettings   = document.getElementById('navSettings');
 
-  // Form & inputs
-  const form         = document.getElementById('expenseForm');
+  const sectionAdd        = document.getElementById('sectionAdd');
+  const sectionTimeline   = document.getElementById('sectionTimeline');
+  const sectionCategories = document.getElementById('sectionCategories');
+  const sectionBudget     = document.getElementById('sectionBudget');
+  const sectionSettings   = document.getElementById('sectionSettings');
+
+  function hideAll() {
+    [sectionAdd, sectionTimeline, sectionCategories, sectionBudget, sectionSettings]
+      .forEach(s => s.classList.add('hidden'));
+  }
+  function clearActive() {
+    [navAdd, navTimeline, navCategories, navBudget, navSettings]
+      .forEach(b => b.classList.remove('active'));
+  }
+
+  navAdd.addEventListener('click', () => {
+    hideAll(); sectionAdd.classList.remove('hidden');
+    clearActive(); navAdd.classList.add('active');
+    renderRecent();
+  });
+  navTimeline.addEventListener('click', () => {
+    hideAll(); sectionTimeline.classList.remove('hidden');
+    clearActive(); navTimeline.classList.add('active');
+    renderTimeline();
+  });
+  navCategories.addEventListener('click', () => {
+    hideAll(); sectionCategories.classList.remove('hidden');
+    clearActive(); navCategories.classList.add('active');
+    renderCategoryList(); renderCategoryChart();
+  });
+  navBudget.addEventListener('click', () => {
+    hideAll(); sectionBudget.classList.remove('hidden');
+    clearActive(); navBudget.classList.add('active');
+    renderBudget();
+  });
+  navSettings.addEventListener('click', () => {
+    hideAll(); sectionSettings.classList.remove('hidden');
+    clearActive(); navSettings.classList.add('active');
+    renderSettings();
+  });
+
+  // initial view
+  navAdd.click();
+
+  // ELEMENT REFS
   const dateInput    = document.getElementById('date');
   const catSelect    = document.getElementById('categorySelect');
   const descInput    = document.getElementById('description');
   const amtInput     = document.getElementById('amount');
-  const submitBtn    = document.getElementById('btn-submit-expense');
-  const cancelEdit   = document.getElementById('btn-cancel-edit');
-
-  // Recent
+  const submitBtn    = document.getElementById('btnSubmitExpense');
+  const cancelBtn    = document.getElementById('btnCancelEdit');
+  const createCatBtn = document.getElementById('btnCreateCategory');
   const recentTbody  = document.querySelector('#recentTable tbody');
-  const btnViewAll   = document.getElementById('btn-view-all');
-
-  // Preview
-  const previewMonth = document.getElementById('currentMonth');
-  const previewTbody = document.querySelector('#expensesTable tbody');
-  const totalCell    = document.getElementById('totalAmount');
-
-  // Timeline
   const tlMonthLbl   = document.getElementById('currentMonthTimeline');
-
-  // Categories
   const catForm      = document.getElementById('categoryForm');
   const newCatInput  = document.getElementById('newCategory');
   const catList      = document.getElementById('categoryList');
+  const catCtx       = document.getElementById('categoryChart').getContext('2d');
 
-  // Settings
-  const monthlyInput = document.getElementById('monthlyBudgetInput');
-  const weeklyInput  = document.getElementById('weeklyBudgetInput');
-  const saveBudgets  = document.getElementById('btn-save-budgets');
+  const monthlyDisp  = document.getElementById('monthlyBudgetDisplay');
+  const weeklyDisp   = document.getElementById('weeklyBudgetDisplay');
+  const monthlyBar   = document.getElementById('monthlyBar');
+  const weeklyBar    = document.getElementById('weeklyBar');
+  const monthlyRem   = document.getElementById('monthlyRemaining');
+  const weeklyRem    = document.getElementById('weeklyRemaining');
+  const monthInput   = document.getElementById('monthlyBudgetInput');
+  const weekInput    = document.getElementById('weeklyBudgetInput');
+  const saveBudgets  = document.getElementById('btnSaveBudgets');
   const colorListDiv = document.getElementById('categoryColorList');
-  const saveColors   = document.getElementById('btn-save-colors');
+  const saveColors   = document.getElementById('btnSaveColors');
 
-  // Budget display
-  const monthlyDisplay= document.getElementById('monthlyBudgetDisplay');
-  const weeklyDisplay = document.getElementById('weeklyBudgetDisplay');
-  const monthlyBar    = document.getElementById('monthlyBar');
-  const weeklyBar     = document.getElementById('weeklyBar');
-  const monthlyRemain = document.getElementById('monthlyRemaining');
-  const weeklyRem     = document.getElementById('weeklyRemaining');
-
-  // Init
+  // INITIAL STORAGE SETUP
   dateInput.value = new Date().toISOString().slice(0,10);
-  setupBudgets();
-  loadCategories();
+  if (!localStorage.categories)     localStorage.categories     = '[]';
+  if (!localStorage.categoryColors) localStorage.categoryColors = '{}';
+  if (!localStorage.weeklyBudget)   localStorage.weeklyBudget   = 0;
+  if (!localStorage.monthlyBudget)  localStorage.monthlyBudget  = 0;
   renderCategoryOptions();
-  switchView('add');
 
-  // ─── Navigation ──────────────────────────────────
-  Object.keys(nav).forEach(k => {
-    nav[k].onclick = () => switchView(k);
-  });
-  btnViewAll.onclick = () => switchView('preview');
-  cancelEdit.onclick = () => {
-    isEditing = false;
-    submitBtn.textContent = 'Add Expense';
-    cancelEdit.classList.add('hidden');
-    form.reset();
-    dateInput.value = new Date().toISOString().slice(0,10);
-  };
-
-  function switchView(view) {
-    Object.values(sections).forEach(s => s.classList.add('hidden'));
-    Object.values(nav).forEach(b => b.classList.remove('active'));
-    sections[view].classList.remove('hidden');
-    nav[view].classList.add('active');
-
-    if (view === 'add')        renderRecent();
-    if (view === 'preview')    renderPreview();
-    if (view === 'timeline')   renderTimeline();
-    if (view === 'categories'){
-      renderCategoryList();
-      renderCategoryChart();
-    }
-    if (view === 'budget')     renderBudget();
-    if (view === 'settings')   renderSettings();
-  }
-
-  // ─── Play Beep ────────────────────────────────────
-  function playBeep() {
-    try {
-      const ctx = new (window.AudioContext||window.webkitAudioContext)();
-      const o = ctx.createOscillator();
-      o.type = 'sine'; o.frequency.value = 440;
-      o.connect(ctx.destination);
-      o.start();
-      setTimeout(()=>o.stop(), 100);
-    } catch(e){}
-  }
-
-  // ─── Budgets ──────────────────────────────────────
-  function setupBudgets() {
-    if (!localStorage.weeklyBudget)  localStorage.weeklyBudget  = 0;
-    if (!localStorage.monthlyBudget) localStorage.monthlyBudget = 0;
-  }
-  saveBudgets.onclick = () => {
-    localStorage.monthlyBudget = parseFloat(monthlyInput.value)||0;
-    localStorage.weeklyBudget  = parseFloat(weeklyInput.value)||0;
-    alert('✅ Budgets saved');
-    renderBudget();
-  };
-  function renderSettings() {
-    monthlyInput.value = localStorage.monthlyBudget;
-    weeklyInput.value  = localStorage.weeklyBudget;
-    // category colors
-    colorListDiv.innerHTML = '';
-    const cats = JSON.parse(localStorage.categories||'[]');
-    const colors = JSON.parse(localStorage.categoryColors||'{}');
-    cats.forEach(cat => {
-      const div = document.createElement('div');
-      div.className = 'color-item';
-      div.innerHTML = `
-        <label>${cat}</label>
-        <input type="color" data-cat="${cat}" value="${colors[cat]||'#23b79b'}">
-      `;
-      colorListDiv.appendChild(div);
-    });
-  }
-  saveColors.onclick = () => {
-    const inputs = colorListDiv.querySelectorAll('input[type=color]');
-    const mapping = {};
-    inputs.forEach(inp => mapping[inp.dataset.cat] = inp.value);
-    localStorage.categoryColors = JSON.stringify(mapping);
-    alert('✅ Colors saved');
-    renderCategoryOptions();
-    renderCategoryList();
-    renderCategoryChart();
-  };
-
-  // ─── Categories ───────────────────────────────────
-  function loadCategories() {
-    if (!localStorage.categories) localStorage.categories = JSON.stringify([]);
-  }
-  catForm.onsubmit = e => {
+  // CREATE CATEGORY
+  catForm.addEventListener('submit', e => {
     e.preventDefault();
-    const c = newCatInput.value.trim();
-    if (!c) return;
     const cats = JSON.parse(localStorage.categories);
-    if (!cats.includes(c)) {
+    const c = newCatInput.value.trim();
+    if (c && !cats.includes(c)) {
       cats.push(c);
       localStorage.categories = JSON.stringify(cats);
+      renderCategoryOptions(); renderCategoryList();
     }
     newCatInput.value = '';
-    renderCategoryOptions();
-    renderCategoryList();
-  };
-  function renderCategoryOptions() {
-    const cats = JSON.parse(localStorage.categories||'[]');
-    const colors = JSON.parse(localStorage.categoryColors||'{}');
-    catSelect.innerHTML = '<option value="" disabled selected>Select category</option>';
-    cats.forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat;
-      opt.textContent = cat;
-      if (colors[cat]) opt.style.color = colors[cat];
-      catSelect.appendChild(opt);
-    });
-  }
-  function renderCategoryList() {
-    catList.innerHTML = '';
-    const cats = JSON.parse(localStorage.categories||'[]');
-    const colors = JSON.parse(localStorage.categoryColors||'{}');
-    cats.forEach(cat => {
-      const li = document.createElement('li');
-      li.textContent = cat;
-      if (colors[cat]) li.style.color = colors[cat];
-      catList.appendChild(li);
-    });
-  }
+  });
+  createCatBtn.addEventListener('click', () =>
+    navSettings.click()
+  );
 
-  // ─── Add / Edit Expense ────────────────────────────
-  form.onsubmit = e => {
+  // ADD / EDIT EXPENSE
+  document.getElementById('expenseForm').addEventListener('submit', e => {
     e.preventDefault();
-    const date     = dateInput.value;
-    const cat      = catSelect.value;
-    const desc     = descInput.value.trim();
-    const amt      = parseFloat(amtInput.value);
-    if (!date||!cat||!desc||isNaN(amt)) {
-      return alert('Please fill all fields.');
-    }
+    const date = dateInput.value,
+          cat  = catSelect.value,
+          desc = descInput.value.trim(),
+          amt  = parseFloat(amtInput.value);
+    if (!date||!cat||!desc||isNaN(amt))
+      return alert('Please fill all fields');
     const key = date.slice(0,7);
     const arr = JSON.parse(localStorage[key]||'[]');
     if (isEditing) {
       arr[editIndex] = { date, category:cat, desc, amt };
       isEditing = false;
       submitBtn.textContent = 'Add Expense';
-      cancelEdit.classList.add('hidden');
+      cancelBtn.classList.add('hidden');
     } else {
       arr.unshift({ date, category:cat, desc, amt });
     }
     localStorage[key] = JSON.stringify(arr);
-    form.reset();
-    dateInput.value = new Date().toISOString().slice(0,10);
     playBeep();
-    switchView('add');
-  };
+    e.target.reset();
+    dateInput.value = new Date().toISOString().slice(0,10);
+    renderRecent();
+  });
+  cancelBtn.addEventListener('click', () => {
+    isEditing = false;
+    submitBtn.textContent = 'Add Expense';
+    cancelBtn.classList.add('hidden');
+    document.getElementById('expenseForm').reset();
+    dateInput.value = new Date().toISOString().slice(0,10);
+  });
 
-  // ─── Recent Expenses ───────────────────────────────
-  function renderRecent() {
-    // gather all entries across months
+  // SAVE SETTINGS
+  saveBudgets.addEventListener('click', () => {
+    localStorage.monthlyBudget = parseFloat(monthInput.value)||0;
+    localStorage.weeklyBudget  = parseFloat(weekInput.value)||0;
+    alert('Budgets saved');
+    renderBudget();
+  });
+  saveColors.addEventListener('click', () => {
+    const map = {};
+    colorListDiv.querySelectorAll('input[type=color]').forEach(i => {
+      map[i.dataset.cat] = i.value;
+    });
+    localStorage.categoryColors = JSON.stringify(map);
+    alert('Colors saved');
+    renderCategoryOptions();
+    renderCategoryList();
+    renderCategoryChart();
+  });
+
+  // BEEP ON ADD
+  function playBeep(){
+    try {
+      const ctx = new (AudioContext||webkitAudioContext)();
+      const o = ctx.createOscillator();
+      o.connect(ctx.destination);
+      o.start();
+      setTimeout(()=>o.stop(),100);
+    } catch {}
+  }
+
+  // RENDER FUNCTIONS
+  function renderCategoryOptions(){
+    const cats   = JSON.parse(localStorage.categories);
+    const colors = JSON.parse(localStorage.categoryColors);
+    catSelect.innerHTML = '<option value="" disabled selected>Select category</option>';
+    cats.forEach(c => {
+      const o = document.createElement('option');
+      o.value = o.textContent = c;
+      if (colors[c]) o.style.color = colors[c];
+      catSelect.appendChild(o);
+    });
+  }
+  function renderCategoryList(){
+    const cats   = JSON.parse(localStorage.categories);
+    const colors = JSON.parse(localStorage.categoryColors);
+    catList.innerHTML = '';
+    cats.forEach(c => {
+      const li = document.createElement('li');
+      li.textContent = c;
+      if (colors[c]) li.style.color = colors[c];
+      catList.appendChild(li);
+    });
+  }
+  function renderRecent(){
     const all = [];
-    Object.keys(localStorage).forEach(k => {
+    for (let k in localStorage) {
       if (/^\d{4}-\d{2}$/.test(k)) {
         JSON.parse(localStorage[k]).forEach(e => all.push(e));
       }
-    });
-    // sort desc by date
-    all.sort((a,b)=> b.date.localeCompare(a.date));
+    }
+    all.sort((a,b) => b.date.localeCompare(a.date));
     const recent = all.slice(0,30);
-    const colors = JSON.parse(localStorage.categoryColors||'{}');
+    const colors = JSON.parse(localStorage.categoryColors);
     recentTbody.innerHTML = '';
     recent.forEach(e => {
       const tr = document.createElement('tr');
@@ -245,115 +212,66 @@ document.addEventListener('DOMContentLoaded', () => {
       recentTbody.appendChild(tr);
     });
   }
-
-  // ─── Preview All ───────────────────────────────────
-  function renderPreview() {
-    const key = new Date().toISOString().slice(0,7);
-    const data = JSON.parse(localStorage[key]||'[]');
-    previewMonth.textContent = key;
-    previewTbody.innerHTML = '';
-    let total = 0;
-    const colors = JSON.parse(localStorage.categoryColors||'{}');
-    data.forEach((e,i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${e.date}</td>
-        <td style="background:${colors[e.category]||'#fff'}">${e.category}</td>
-        <td>${e.desc}</td>
-        <td>₹${e.amt.toFixed(2)}</td>
-        <td><button class="edit-btn" data-i="${i}">Edit</button></td>
-      `;
-      previewTbody.appendChild(tr);
-      total += e.amt;
-    });
-    totalCell.textContent = `₹${total.toFixed(2)}`;
-    // edit handlers
-    Array.from(document.querySelectorAll('.edit-btn')).forEach(btn=>{
-      btn.onclick = () => {
-        editIndex = +btn.dataset.i;
-        editKey = key;
-        const entry = JSON.parse(localStorage[key])[editIndex];
-        dateInput.value      = entry.date;
-        catSelect.value      = entry.category;
-        descInput.value      = entry.desc;
-        amtInput.value       = entry.amt;
-        isEditing = true;
-        submitBtn.textContent= 'Update Expense';
-        cancelEdit.classList.remove('hidden');
-        switchView('add');
-      };
-    });
-  }
-
-  // ─── Timeline Chart ───────────────────────────────
-  function renderTimeline() {
+  function renderTimeline(){
     const key = new Date().toISOString().slice(0,7);
     tlMonthLbl.textContent = key;
     const data = JSON.parse(localStorage[key]||'[]');
     const daily = {};
-    data.forEach(e=> daily[e.date]=(daily[e.date]||0)+e.amt );
-    drawTimelineChart(daily);
+    data.forEach(e=> daily[e.date] = (daily[e.date]||0) + e.amt );
+    const dates = Object.keys(daily).sort(), vals = dates.map(d=>daily[d]);
+    const ctx = document.getElementById('timelineChart').getContext('2d');
+    if (timelineChartInstance) timelineChartInstance.destroy();
+    timelineChartInstance = new Chart(ctx, {
+      type:'line',
+      data:{ labels:dates, datasets:[{label:'Daily Spend',data:vals,fill:false,tension:0.2,borderWidth:2}] },
+      options:{ scales:{ x:{title:{display:true,text:'Date'}}, y:{title:{display:true,text:'₹'}} }}
+    });
   }
-
-  // ─── Category Pie Chart ───────────────────────────
-  function renderCategoryChart() {
+  function renderCategoryChart(){
     const key = new Date().toISOString().slice(0,7);
     const data = JSON.parse(localStorage[key]||'[]');
     const totals = {};
-    data.forEach(e=> totals[e.category]=(totals[e.category]||0)+e.amt );
-    drawCategoryChart(totals);
-  }
-
-  // ─── Budget ───────────────────────────────────────
-  function renderBudget() {
-    const mb = +localStorage.monthlyBudget||0;
-    const wb = +localStorage.weeklyBudget||0;
-    monthlyDisplay.textContent = mb.toFixed(2);
-    weeklyDisplay.textContent  = wb.toFixed(2);
-    // spent this month
-    const key = new Date().toISOString().slice(0,7);
-    const data = JSON.parse(localStorage[key]||'[]');
-    const mSpent = data.reduce((s,e)=>s+e.amt,0);
-    const today = new Date().getDate();
-    const wk = Math.floor((today-1)/7)+1;
-    const wSpent = data.filter(e=>
-      Math.floor((+e.date.split('-')[2]-1)/7)+1===wk
-    ).reduce((s,e)=>s+e.amt,0);
-    const mPct = mb?Math.min(mSpent/mb*100,100):0;
-    const wPct = wb?Math.min(wSpent/wb*100,100):0;
-    monthlyBar.style.width = mPct+'%';
-    weeklyBar.style.width  = wPct+'%';
-    monthlyRemain.textContent = `Remaining: ₹${(mb-mSpent).toFixed(2)}`;
-    weeklyRem.textContent     = `Remaining: ₹${(wb-wSpent).toFixed(2)}`;
-  }
-
-  // ─── Drawing Charts ───────────────────────────────
-  function drawCategoryChart(totals) {
-    const labels = Object.keys(totals);
-    const vals   = labels.map(l=>totals[l]);
-    const stored = JSON.parse(localStorage.categoryColors||'{}');
-    const colors = labels.map(l=>stored[l]||`hsl(${Math.random()*360},60%,60%)`);
-    const ctx    = document.getElementById('categoryChart').getContext('2d');
+    data.forEach(e=> totals[e.category] = (totals[e.category]||0) + e.amt );
+    const labels = Object.keys(totals), vals = labels.map(l=>totals[l]);
+    const colors = labels.map(l=>JSON.parse(localStorage.categoryColors)[l]||'#23b79b');
     if (categoryChartInstance) categoryChartInstance.destroy();
-    categoryChartInstance = new Chart(ctx,{type:'pie',
-      data:{labels,datasets:[{data:vals,backgroundColor:colors}]},
-      options:{plugins:{legend:{position:'bottom',labels:{generateLabels:ch=>
-        ch.data.labels.map((label,i)=>({
-          text:`${label}: ₹${ch.data.datasets[0].data[i].toFixed(2)}`,
-          fillStyle:ch.data.datasets[0].backgroundColor[i]
-        }))
-      }},tooltip:{callbacks:{label(ct)=>`${ct.label}: ₹${ct.raw.toFixed(2)}`}}}}
+    categoryChartInstance = new Chart(catCtx, {
+      type:'pie',
+      data:{ labels, datasets:[{data:vals,backgroundColor:colors}] },
+      options:{ plugins:{ legend:{ position:'bottom' } } }
     });
   }
-
-  function drawTimelineChart(daily) {
-    const dates = Object.keys(daily).sort();
-    const vals  = dates.map(d=>daily[d]);
-    const ctx   = document.getElementById('timelineChart').getContext('2d');
-    if (timelineChartInstance) timelineChartInstance.destroy();
-    timelineChartInstance = new Chart(ctx,{type:'line',
-      data:{labels:dates,datasets:[{label:'Daily Spend',data:vals,fill:false,tension:0.2,borderWidth:2}]},
-      options:{scales:{x:{title:{display:true,text:'Date'}},y:{title:{display:true,text:'₹'}}}}
+  function renderBudget(){
+    const mb = +localStorage.monthlyBudget, wb = +localStorage.weeklyBudget;
+    monthlyDisp.textContent = mb.toFixed(2);
+    weeklyDisp.textContent  = wb.toFixed(2);
+    const key = new Date().toISOString().slice(0,7);
+    const data = JSON.parse(localStorage[key]||'[]');
+    const spentM = data.reduce((s,e)=>s+e.amt,0);
+    const today  = new Date().getDate();
+    const wk     = Math.floor((today-1)/7)+1;
+    const spentW = data.filter(e=>Math.floor((+e.date.split('-')[2]-1)/7)+1===wk)
+                       .reduce((s,e)=>s+e.amt,0);
+    const pM = mb?Math.min(spentM/mb*100,100):0;
+    const pW = wb?Math.min(spentW/wb*100,100):0;
+    monthlyBar.style.width = pM+'%';
+    weeklyBar.style.width  = pW+'%';
+    monthlyRem.textContent = `Remaining: ₹${(mb-spentM).toFixed(2)}`;
+    weeklyRem.textContent  = `Remaining: ₹${(wb-spentW).toFixed(2)}`;
+  }
+  function renderSettings(){
+    monthInput.value = localStorage.monthlyBudget;
+    weekInput.value  = localStorage.weeklyBudget;
+    colorListDiv.innerHTML = '';
+    JSON.parse(localStorage.categories).forEach(cat => {
+      const div = document.createElement('div');
+      div.className = 'color-item';
+      div.innerHTML = `
+        <label>${cat}</label>
+        <input type="color" data-cat="${cat}"
+               value="${JSON.parse(localStorage.categoryColors)[cat]||'#23b79b'}">
+      `;
+      colorListDiv.appendChild(div);
     });
   }
 });
