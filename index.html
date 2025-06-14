@@ -1,29 +1,30 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Expense Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-  <!-- Your styles -->
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Chart.js + DataLabels plugin -->
+  <!-- Chart.js + DataLabels -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
-  <!-- Your app logic -->
+  <!-- App logic -->
   <script defer src="script.js"></script>
 </head>
 <body>
   <header>
     <h1 id="appTitle">Expense Tracker</h1>
     <nav class="top-nav">
-      <button id="navAdd"        class="nav-button active" aria-label="Add">🏠</button>
-      <button id="navTimeline"   class="nav-button"        aria-label="Timeline">📅</button>
-      <button id="navCategories" class="nav-button"        aria-label="Categories">📊</button>
-      <button id="navBudget"     class="nav-button"        aria-label="Budget">⛽</button>
-      <button id="navSettings"   class="nav-button"        aria-label="Settings">⚙️</button>
+      <button type="button" id="navAdd" class="nav-button active" aria-label="Add">🏠</button>
+      <button type="button" id="navTimeline" class="nav-button" aria-label="Timeline">📅</button>
+      <button type="button" id="navCategories" class="nav-button" aria-label="Categories">📊</button>
+      <button type="button" id="navBudget" class="nav-button" aria-label="Budget">⛽</button>
+      <button type="button" id="navSettings" class="nav-button" aria-label="Settings">⚙️</button>
     </nav>
   </header>
 
@@ -79,47 +80,39 @@
     <!-- TIMELINE -->
     <section id="sectionTimeline" class="section hidden">
       <h2>Daily Spend in <span id="currentMonthTimeline"></span></h2>
-      <canvas id="timelineChart"></canvas>
+      <canvas id="timelineChart" class="chart-canvas"></canvas>
+      <div class="timeline-filter">
+        <label>From <input type="date" id="filterStart"></label>
+        <label>To   <input type="date" id="filterEnd"></label>
+        <button type="button" id="applyFilter" class="primary small">Apply</button>
+      </div>
     </section>
 
     <!-- CATEGORIES & SUBCATEGORIES -->
-    <!-- CATEGORIES & SUBCATEGORIES -->
-<section id="sectionCategories" class="section hidden">
-  <h2>Categories & Subcategories</h2>
-
-  <!-- Categories Card -->
-  <div class="card">
-    <form id="categoryForm" class="inline-form">
-      <input type="text" id="newCategory" placeholder="New category" required>
-      <button type="submit" class="primary small">Create</button>
-    </form>
-    <ul id="categoryList" class="editable-list"></ul>
-  </div>
-
-  <!-- Subcategories Card -->
-  <div class="card">
-    <!-- this dropdown is for picking which category you’re adding subs to -->
-    <select id="categorySelectForSub" class="select-for-sub">
-      <option value="" disabled selected>Select category…</option>
-    </select>
-
-    <form id="subcategoryForm" class="inline-form">
-      <!-- note the id here -->
-      <input type="text" id="newSubcategory" placeholder="New subcategory" disabled required>
-      <!-- and the id here -->
-      <button type="submit" id="btnSubmitSub" class="primary small" disabled>Create</button>
-    </form>
-
-    <!-- this is where your JS will inject the existing subcategories -->
-    <ul id="subcategoryList" class="editable-list"></ul>
-  </div>
-
-  <!-- Chart Card -->
-  <div class="card">
-    <h3>Spend by Category</h3>
-    <canvas id="categoryChart"></canvas>
-  </div>
-</section>
+    <section id="sectionCategories" class="section hidden">
+      <h2>Categories & Subcategories</h2>
+      <div class="card">
+        <form id="categoryForm" class="inline-form">
+          <input type="text" id="newCategory" placeholder="New category" required>
+          <button type="submit" class="primary small">Create</button>
+        </form>
+        <ul id="categoryList" class="editable-list"></ul>
+      </div>
+      <div class="card">
+        <select id="categorySelectForSub" class="select-for-sub">
+          <option value="" disabled selected>Select category…</option>
+        </select>
+        <form id="subcategoryForm" class="inline-form">
+          <input type="text" id="newSubcategory" placeholder="New subcategory" disabled required>
+          <button type="submit" id="btnSubmitSub" class="primary small" disabled>Create</button>
+        </form>
+        <ul id="subcategoryList" class="editable-list"></ul>
+      </div>
+      <div class="card">
+        <h3>Spend by Category</h3>
+        <canvas id="categoryChart" class="chart-canvas"></canvas>
+      </div>
+    </section>
 
     <!-- BUDGET -->
     <section id="sectionBudget" class="section hidden">
@@ -128,7 +121,6 @@
         <label>Monthly: ₹<span id="monthlyBudgetDisplay"></span></label>
         <div class="progress-bar"><div id="monthlyBar" class="progress-fill"></div></div>
         <span id="monthlyRemaining"></span>
-
         <label>Weekly: ₹<span id="weeklyBudgetDisplay"></span></label>
         <div class="progress-bar"><div id="weeklyBar" class="progress-fill"></div></div>
         <span id="weeklyRemaining"></span>
@@ -153,6 +145,7 @@
         <div id="categoryColorList"></div>
         <button type="button" id="btnSaveColors" class="primary">Save</button>
       </div>
+      <button type="button" id="btnResetAll" class="reset-all">🗑️ Reset All Data</button>
     </section>
   </main>
 </body>
