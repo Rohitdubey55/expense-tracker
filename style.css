@@ -1,209 +1,120 @@
+/* style.css */
 * { box-sizing:border-box; margin:0; padding:0 }
-body {
-  font-family:'Segoe UI',sans-serif;
-  background:#eef1f5;
-  color:#333;
-}
-/* ---------- Nav Container ---------- */
-header {
-  background: #fff; /* pure white */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.top-nav {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;             /* nice even spacing */
-  padding: 0.5rem 0;     /* slim, tight */
-  border-bottom: 1px solid #eee;
-}
+body { font-family:'Segoe UI',sans-serif; background:#eef1f5; color:#333 }
 
-/* ---------- Nav Buttons ---------- */
-.nav-button {
-  background: none;
-  border: none;
-  color: #666;           /* muted grey */
-  font-size: 1.5rem;     /* slightly larger icons */
-  padding: 0.25rem;
-  cursor: pointer;
-  transition: color 0.25s, transform 0.25s;
-}
-.nav-button:hover {
-  color: #23b79b;        /* your brand accent */
-  transform: translateY(-2px);
-}
-.nav-button.active {
-  color: #23b79b;
-  border-bottom: 2px solid #23b79b;
-}
+/* NAV */
+header { background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.1) }
+.top-nav { display:flex; justify-content:center; gap:2rem; padding:.5rem 0; border-bottom:1px solid #eee }
+.nav-button { background:none; border:none; color:#666; font-size:1.5rem; cursor:pointer; transition:color .25s,transform .25s }
+.nav-button:hover { color:#23b79b; transform:translateY(-2px) }
+.nav-button.active { color:#23b79b; border-bottom:2px solid #23b79b }
 
-/* hide the old nav-button.active outline or background if you have them */
-.nav-button.active:focus,
-.nav-button.active:active {
-  outline: none;
-  background: none;
-}
-
-}
+/* SECTIONS */
 main { padding:1rem }
-.section {
-  background:#fff;
-  margin:1rem 0;
-  padding:1.5rem;
-  border-radius:8px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.1);
-}
+.section { background:#fff; margin:1rem 0; padding:1.5rem; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1) }
 .hidden { display:none }
-.section h2, .section h3 {
-  margin-bottom:1rem;
-  padding-bottom:0.5rem;
-  border-bottom:1px solid #eee;
-  color:#1a6f55;
-}
-/* Forms */
+.section h2,h3 { margin-bottom:1rem; padding-bottom:.5rem; border-bottom:1px solid #eee; color:#1a6f55 }
+
+/* FORMS & BUTTONS */
 form label { display:block; margin-top:1rem; font-weight:500 }
-input, select {
-  width:100%;
-  padding:0.75rem;
-  margin-top:0.25rem;
-  border:1px solid #ccc;
-  border-radius:4px;
-}
-.input-group, .button-group {
-  display:flex;
-  gap:0.5rem;
-  align-items:center;
-}
-.inline-form {
-  display:flex;
-  gap:0.5rem;
-  margin-bottom:1rem;
-}
-.primary {
-  flex:1;
-  padding:0.75rem;
-  background:#23b79b;
-  color:#fff;
-  border:none;
-  border-radius:4px;
-  cursor:pointer;
-  transition:opacity 0.2s;
-}
-.primary:hover { opacity:0.9 }
-.secondary {
-  padding:0.5rem 0.75rem;
-  background:#fff;
-  color:#23b79b;
-  border:1px solid #23b79b;
-  border-radius:4px;
-  cursor:pointer;
-  transition:background 0.2s,color 0.2s;
-}
-.secondary:hover {
-  background:#23b79b;
-  color:#fff;
-}
-.small { width:auto; padding:0.5rem; font-size:0.9rem }
-/* Tables */
-.table-container { overflow-x:auto; margin-top:1rem }
-table { width:100%; border-collapse:collapse }
-th, td {
-  padding:0.75rem;
-  text-align:left;
-  border-bottom:1px solid #eee;
-}
-.clickable-row {
-  cursor:pointer;
-  transition:background 0.2s;
-}
-.clickable-row:hover {
-  background:#f9f9f9;
-}
-/* Settings */
-.settings-item {
-  background:#fafafa;
-  padding:1rem;
-  margin:1rem 0;
-  border-radius:6px;
-  box-shadow:0 1px 2px rgba(0,0,0,0.05);
-}
-.settings-item h3 { margin-bottom:0.5rem }
-/* Charts */
-canvas {
-  width:100% !important;
-  max-height:250px;
-  margin:1rem 0;
-}
-/* Budget bars */
+input,select { width:100%; padding:.75rem; margin-top:.25rem; border:1px solid #ccc; border-radius:4px }
+.input-group,.button-group { display:flex;gap:.5rem;align-items:center }
+.inline-form { display:flex;gap:.5rem;margin-bottom:1rem }
+.primary { flex:1;padding:.75rem;background:#23b79b;color:#fff;border:none;border-radius:4px;cursor:pointer;transition:opacity .2s }
+.primary:hover { opacity:.9 }
+.secondary { padding:.5rem .75rem;background:#fff;color:#23b79b;border:1px solid #23b79b;border-radius:4px;cursor:pointer;transition:background .2s,color .2s }
+.secondary:hover { background:#23b79b;color:#fff }
+.small { width:auto;padding:.5rem;font-size:.9rem }
+
+/* TABLES */
+.table-container { overflow-x:auto;margin-top:1rem }
+table { width:100%;border-collapse:collapse }
+th,td { padding:.75rem;text-align:left;border-bottom:1px solid #eee }
+.clickable-row { cursor:pointer;transition:background .2s }
+.clickable-row:hover { background:#f9f9f9 }
+
+/* CARDS & LISTS */
+.card { background:#fff;margin:1rem 0;padding:1rem;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1) }
+.editable-list { list-style:none;padding:0;margin-top:.5rem }
+.editable-list li { display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid #eee }
+.editable-list li:last-child { border-bottom:none }
+.editable-list button { background:none;border:none;cursor:pointer;color:#666;font-size:1rem;transition:color .2s;margin-left:.5rem }
+.editable-list button:hover { color:#23b79b }
+
+/* BUDGET BARS */
 .budget-overview { margin-top:1rem }
-.budget-overview label { display:block; font-weight:600; margin-top:1rem }
-.progress-bar {
-  width:100%;
-  height:16px;
-  background:#eee;
-  border-radius:8px;
-  overflow:hidden;
-  margin:0.25rem 0;
-}
-.progress-fill {
-  height:100%;
-  width:0;
-  background:#23b79b;
-  transition:width 0.5s ease;
-}
-.budget-overview span {
-  display:block;
-  font-size:0.9rem;
-}
+.budget-overview label { display:block;font-weight:600;margin-top:1rem }
+.progress-bar { width:100%;height:16px;background:#eee;border-radius:8px;overflow:hidden;margin:.25rem 0 }
+.progress-fill { height:100%;width:0;background:#23b79b;transition:width .5s }
 
+/* TIMELINE FILTER */
+.timeline-filter { display:flex;gap:.75rem;align-items:center;margin-top:1rem }
+.timeline-filter input { padding:.4rem;border:1px solid #ccc;border-radius:4px }
+.timeline-filter .primary.small { margin-left:auto }
 
-/* ---- Cards ---- */
-.card {
-  background: #fff;
-  margin: 1rem 0;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
+/* RESET BUTTON */
+.reset-all { background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:.75rem 1.5rem;font-size:1rem;cursor:pointer;display:block;margin:2rem auto 0;transition:background .2s }
+.reset-all:hover { background:#c0392b }
 
-/* ---- Editable List ---- */
-.editable-list {
-  list-style: none;
-  padding-left: 0;
-  margin-top: 0.5rem;
-}
-.editable-list li {
-  display: flex;
-  justify-content: space-between;
+/* CHART CANVAS */
+.chart-canvas { width:100%!important;height:300px!important }
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* CATEGORY COLOR SWATCH IN THE “Categories” LIST */
+
+.cat-label {
+  display: inline-flex;
   align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
-}
-.editable-list li:last-child {
-  border-bottom: none;
-}
-.editable-list button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  margin-left: 0.5rem;
-  color: #666;
-  transition: color 0.2s;
-}
-.editable-list button:hover {
-  color: #23b79b;
 }
 
-/* ---- Subcategory selector ---- */
-.select-for-sub {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
+.color-box {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
   border: 1px solid #ccc;
-  border-radius: 4px;
 }
 
-/* ---- Doughnut “3D” Effect ---- */
-#categoryChart {
-  max-height: 300px;
+
+/* ───── Modern Timeline Filter ───── */
+.timeline-filter {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+  padding: 1rem 0;
+}
+
+.timeline-filter label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.timeline-filter input {
+  /* remove the bulky default styling */
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  background: transparent;
+  padding: 0.3rem 0;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.timeline-filter input:focus {
+  outline: none;
+  border-color: #23b79b;
+}
+
+.timeline-filter .primary.small {
+  /* match the new minimalist inputs */
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  align-self: start;
 }
