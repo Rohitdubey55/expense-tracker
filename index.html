@@ -4,25 +4,33 @@
   <meta charset="UTF-8">
   <title>Expense Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
+
+  <!-- Your styles -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js + DataLabels plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+  <!-- Your app logic -->
+  <script defer src="script.js"></script>
 </head>
 <body>
   <header>
-    <h1>Expense Tracker</h1>
+    <h1 id="appTitle">Expense Tracker</h1>
     <nav class="top-nav">
-      <button id="navAdd" class="nav-button active">🏠</button>
-      <button id="navTimeline" class="nav-button">📅</button>
-      <button id="navCategories" class="nav-button">📊</button>
-      <button id="navBudget" class="nav-button">⛽</button>
-      <button id="navSettings" class="nav-button">⚙️ </button>
+      <button id="navAdd"        class="nav-button active" aria-label="Add">🏠</button>
+      <button id="navTimeline"   class="nav-button"        aria-label="Timeline">📅</button>
+      <button id="navCategories" class="nav-button"        aria-label="Categories">📊</button>
+      <button id="navBudget"     class="nav-button"        aria-label="Budget">⛽</button>
+      <button id="navSettings"   class="nav-button"        aria-label="Settings">⚙️</button>
     </nav>
   </header>
 
   <main>
-    <!-- ADD & RECENT -->
-    <section id="sectionAdd">
+    <!-- ADD EXPENSE -->
+    <section id="sectionAdd" class="section">
+      <h2>Add Expense</h2>
       <form id="expenseForm">
         <label for="date">Date</label>
         <input type="date" id="date" required>
@@ -32,25 +40,35 @@
           <select id="categorySelect" required>
             <option value="" disabled selected>Select category</option>
           </select>
-          <button id="btnCreateCategory" type="button" class="secondary small">+ New</button>
+          <button type="button" id="btnCreateCategory" class="secondary small">+</button>
         </div>
 
-        <label for="description">Spent On</label>
-        <input type="text" id="description" placeholder="Groceries, Fuel…" required>
+        <label for="subcategorySelect">Subcategory</label>
+        <div class="input-group">
+          <select id="subcategorySelect" required>
+            <option value="" disabled selected>Select subcategory</option>
+          </select>
+          <button type="button" id="btnCreateSubcategory" class="secondary small">+</button>
+        </div>
+
+        <label for="description">Description</label>
+        <input type="text" id="description" required>
 
         <label for="amount">Amount (₹)</label>
-        <input type="number" id="amount" placeholder="0.00" required>
+        <input type="number" id="amount" required>
 
-        <button id="btnSubmitExpense" type="submit" class="primary">Add Expense</button>
-        <button id="btnCancelEdit" type="button" class="secondary small hidden">Cancel Edit</button>
+        <div class="button-group">
+          <button type="submit" id="btnSubmitExpense" class="primary">Add</button>
+          <button type="button" id="btnCancelEdit" class="secondary small hidden">Cancel</button>
+        </div>
       </form>
 
-      <div id="recentSection">
+      <div id="recentSection" class="section">
         <h3>Last 30 Expenses</h3>
         <div class="table-container">
           <table id="recentTable">
             <thead>
-              <tr><th>Date</th><th>Cat.</th><th>Desc.</th><th>Amt</th></tr>
+              <tr><th>Date</th><th>Description</th><th>Amt</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -59,54 +77,83 @@
     </section>
 
     <!-- TIMELINE -->
-    <section id="sectionTimeline" class="hidden">
+    <section id="sectionTimeline" class="section hidden">
       <h2>Daily Spend in <span id="currentMonthTimeline"></span></h2>
       <canvas id="timelineChart"></canvas>
     </section>
 
-    <!-- CATEGORIES -->
-    <section id="sectionCategories" class="hidden">
-      <h2>Categories</h2>
-      <form id="categoryForm" class="inline-form">
-        <input type="text" id="newCategory" placeholder="New category" required>
-        <button type="submit" class="primary small">Create</button>
-      </form>
-      <ul id="categoryList" class="list"></ul>
-      <h3>Spend by Category</h3>
-      <canvas id="categoryChart"></canvas>
-    </section>
+    <!-- CATEGORIES & SUBCATEGORIES -->
+    <!-- CATEGORIES & SUBCATEGORIES -->
+<section id="sectionCategories" class="section hidden">
+  <h2>Categories & Subcategories</h2>
+
+  <!-- Categories Card -->
+  <div class="card">
+    <form id="categoryForm" class="inline-form">
+      <input type="text" id="newCategory" placeholder="New category" required>
+      <button type="submit" class="primary small">Create</button>
+    </form>
+    <ul id="categoryList" class="editable-list"></ul>
+  </div>
+
+  <!-- Subcategories Card -->
+  <div class="card">
+    <!-- this dropdown is for picking which category you’re adding subs to -->
+    <select id="categorySelectForSub" class="select-for-sub">
+      <option value="" disabled selected>Select category…</option>
+    </select>
+
+    <form id="subcategoryForm" class="inline-form">
+      <!-- note the id here -->
+      <input type="text" id="newSubcategory" placeholder="New subcategory" disabled required>
+      <!-- and the id here -->
+      <button type="submit" id="btnSubmitSub" class="primary small" disabled>Create</button>
+    </form>
+
+    <!-- this is where your JS will inject the existing subcategories -->
+    <ul id="subcategoryList" class="editable-list"></ul>
+  </div>
+
+  <!-- Chart Card -->
+  <div class="card">
+    <h3>Spend by Category</h3>
+    <canvas id="categoryChart"></canvas>
+  </div>
+</section>
 
     <!-- BUDGET -->
-    <section id="sectionBudget" class="hidden">
+    <section id="sectionBudget" class="section hidden">
       <h2>Budget Overview</h2>
       <div class="budget-overview">
-        <label>Monthly: ₹<span id="monthlyBudgetDisplay">0</span></label>
+        <label>Monthly: ₹<span id="monthlyBudgetDisplay"></span></label>
         <div class="progress-bar"><div id="monthlyBar" class="progress-fill"></div></div>
         <span id="monthlyRemaining"></span>
 
-        <label>Weekly: ₹<span id="weeklyBudgetDisplay">0</span></label>
+        <label>Weekly: ₹<span id="weeklyBudgetDisplay"></span></label>
         <div class="progress-bar"><div id="weeklyBar" class="progress-fill"></div></div>
         <span id="weeklyRemaining"></span>
       </div>
     </section>
 
     <!-- SETTINGS -->
-    <section id="sectionSettings" class="hidden">
+    <section id="sectionSettings" class="section hidden">
       <h2>Settings</h2>
       <div class="settings-item">
         <h3>Edit Budgets</h3>
         <label>Monthly ₹<input type="number" id="monthlyBudgetInput"></label>
-        <label>Weekly ₹<input type="number" id="weeklyBudgetInput"></label>
-        <button id="btnSaveBudgets" class="primary">Save Budgets</button>
+        <label>Weekly  ₹<input type="number" id="weeklyBudgetInput"></label>
+        <button type="button" id="btnSaveBudgets" class="primary">Save</button>
+      </div>
+      <div class="settings-item">
+        <h3>View Month</h3>
+        <input type="month" id="viewMonthSelect">
       </div>
       <div class="settings-item">
         <h3>Category Colors</h3>
         <div id="categoryColorList"></div>
-        <button id="btnSaveColors" class="primary">Save Colors</button>
+        <button type="button" id="btnSaveColors" class="primary">Save</button>
       </div>
     </section>
   </main>
-
-  <script src="script.js"></script>
 </body>
 </html>
